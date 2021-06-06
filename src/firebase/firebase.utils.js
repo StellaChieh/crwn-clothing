@@ -12,6 +12,26 @@ const config = {
   measurementId: "G-RX56J9LGPB",
 };
 
+export const creteUserProfileDocument = async (userAuth, additionalData) => {
+  if (!userAuth) return;
+  // return a reference to the doc (not the doc itself)
+  const userRef = firestore.doc(`users/${userAuth.uid}`);
+  // return the doc object
+  const snapShot = await userRef.get();
+
+  if (!snapShot.exists) { // the user is not in the DB
+    const { displayName, email } = userAuth; // the google API gives us diplayName and eamil key
+    const createdAt = new Date();
+    try {
+      // create a doc and save in DB
+      await userRef.set({ displayName, email, createdAt, ...additionalData });
+    } catch (err) {
+      console.error("error creating user ", err.message);
+    }
+  }
+  return userRef;
+};
+
 firebase.initializeApp(config);
 
 export const auth = firebase.auth();
